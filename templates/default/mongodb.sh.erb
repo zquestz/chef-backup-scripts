@@ -1,0 +1,31 @@
+#!/bin/sh
+
+DATE=`date +%Y-%m-%d`
+TEMP_BACKUP_DIR="/tmp/mongodb-backup-$DATE"
+mkdir -p "<%= node[:backup_scripts][:target_directory] %>/mongodb"
+rm -rf /tmp/mongodb-backup-*
+mkdir -p "$TEMP_BACKUP_DIR"
+
+# Remove all backups more than <%= node[:backup_scripts][:retention_days] %> days old.
+echo "OLD BACKUPS REMOVED:"
+echo "--------------------"
+find "<%= node[:backup_scripts][:target_directory] %>/mongodb" -type f -mtime +<%= node[:backup_scripts][:retention_days] %> -exec echo "-> {}" \; -exec rm {} \;
+echo ""
+
+# Dump the MongoDB database.
+(cd $TEMP_BACKUP_DIR && mongodump >/dev/null)
+
+# Create an archive for each database.
+echo "CREATING ARCHIVES:"
+echo "-----------------"
+for i in "$TEMP_BACKUP_DIR/dump/*"; do
+
+  DB=`basename $i`
+  ARCHIVE_FILE="<%= node[:backup_scripts][:target_directory] %>/mongodb/<%= node[:fqdn] %>_${DATE}_$DB.tgz"
+  (cd "$TEMP_BACKUP_DIR/dump" && tar zcf "$ARCHIVE_FILE" "$DB")
+  ARCHIVE_FILE_SIZE=`du -h "$ARCHIVE_FILE" | awk -F" " '{print $1}'`
+
+  echo "$DB -> $ARCHIVE_FILE ($ARCHIVE_FILE_SIZE)"
+
+done
+echo ""

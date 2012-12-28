@@ -1,0 +1,42 @@
+#!/bin/sh
+
+DATE=`date +%Y-%m-%d`
+mkdir -p "<%= node[:backup_scripts][:target_directory] %>/postgresql"
+
+# Remove all backups more than <%= node[:backup_scripts][:retention_days] %> days old.
+echo "OLD BACKUPS REMOVED:"
+echo "--------------------"
+find "<%= node[:backup_scripts][:target_directory] %>/postgresql" -type f -mtime +<%= node[:backup_scripts][:retention_days] %> -exec echo "-> {}" \; -exec rm {} \;
+echo ""
+
+# Get a list of databases available on the server.
+LIST=$(su - postgres -c "psql -qAt -c 'SELECT datname FROM pg_database'" | grep -v ^template)
+
+# Prepare the psql backup directory
+su - postgres -c "rm -rf /var/lib/postgresql/dumps"
+su - postgres -c "mkdir /var/lib/postgresql/dumps"
+
+# Backup each database to its own file.
+echo "DUMPING DATABASES:"
+echo "------------------"
+for DB in $LIST; do
+
+  DB_FILE="/var/lib/postgresql/dumps/$DB.sql"
+  su - postgres -c "pg_dump --format=custom --file=\"$DB_FILE\" \"$DB\""
+  DB_FILE_SIZE=`du -h "$DB_FILE" | awk -F" " '{print $1}'`
+
+  echo "$DB -> $DB_FILE ($DB_FILE_SIZE)"
+
+done
+echo ""
+
+# Compress the dumps and remove the original files.
+echo "MOVING BACKUP FILES:"
+echo "--------------------"
+for i in /var/lib/postgresql/dumps/*.sql; do
+  ARCHIVE_FILE="<%= node[:backup_scripts][:target_directory] %>/postgresql/<%= node[:fqdn] %>_${DATE}_`basename $i`"
+  mv "$i" "$ARCHIVE_FILE"
+  ARCHIVE_FILE_SIZE=`du -h "$ARCHIVE_FILE" | awk -F" " '{print $1}'`
+  echo "-> $ARCHIVE_FILE ($ARCHIVE_FILE_SIZE)"
+done
+echo ""
