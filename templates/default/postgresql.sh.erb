@@ -44,6 +44,6 @@ done
 echo ""
 echo "SYNCING TO S3"
 echo "-------------"
-s3cmd sync "<%= node[:backup_scripts][:target_directory] %>/backups" "s3://<%= node[:backup_scripts][:s3_bucket] %>/"
+s3cmd sync "<%= node[:backup_scripts][:target_directory] %>/postgresql" "s3://<%= node[:backup_scripts][:s3_bucket] %>/"
 echo "SYNC COMPLETE!"
 echo "BACKUP DONE!"
