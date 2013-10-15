@@ -37,6 +37,8 @@ for i in /var/lib/postgresql/dumps/*.sql; do
   ARCHIVE_FILE="<%= node[:backup_scripts][:target_directory] %>/postgresql/<%= node[:fqdn] %>_${DATE}_`basename $i`"
   mv "$i" "$ARCHIVE_FILE"
   ARCHIVE_FILE_SIZE=`du -h "$ARCHIVE_FILE" | awk -F" " '{print $1}'`
-  echo "-> $ARCHIVE_FILE ($ARCHIVE_FILE_SIZE)"
+  gzip -f "$ARCHIVE_FILE"
+  GZ_ARCHIVE_FILE_SIZE=`du -h "$ARCHIVE_FILE.gz" | awk -F" " '{print $1}'`
+  echo "-> $ARCHIVE_FILE ($ARCHIVE_FILE_SIZE -> $GZ_ARCHIVE_FILE_SIZE)"
 done
 echo ""

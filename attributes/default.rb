@@ -21,3 +21,7 @@ default[:backup_scripts][:target_directory] = "/backups"
 default[:backup_scripts][:hour] = "3"
 default[:backup_scripts][:minute] = "0"
 default[:backup_scripts][:retention_days] = 10
+default[:backup_scripts][:s3_bucket] = "rakuten-pgstore-backups"
+default[:backup_scripts][:aws_access_key_id] = ""
+default[:backup_scripts][:aws_secret_access_key] = ""
+default[:backup_scripts][:s3_cmd][:users] = [:root, :ubuntu]

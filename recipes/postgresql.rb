@@ -21,6 +21,22 @@ package "s3cmd" do
   action [:install, :upgrade]
 end
 
+node[:backup_scripts][:s3cmd][:users].each do |user|
+  home = user.to_s == :root.to_s ? "/root" : "/home/#{user}"
+
+  template "s3cfg" do
+      path "#{home}/.s3cfg"
+      source "s3cfg.erb"
+      user "#{user}"
+      group "#{user}"
+      mode 0600
+  end
+end
+
+unless node[:fqdn]
+  node[:fqdn] = node[:hostname]
+end
+
 template "/usr/local/bin/postgresql-backup.sh" do
   source "postgresql.sh.erb"
   owner "root"
