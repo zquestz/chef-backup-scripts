@@ -34,7 +34,7 @@ node[:backup_scripts][:s3cmd][:users].each do |user|
 end
 
 unless node[:fqdn]
-  node[:fqdn] = node[:hostname]
+  node.default[:fqdn] = node[:hostname]
 end
 
 template "/usr/local/bin/postgresql-backup.sh" do
