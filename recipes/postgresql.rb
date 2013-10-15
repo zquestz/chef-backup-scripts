@@ -17,6 +17,10 @@
 # limitations under the License.
 #
 
+package "s3cmd" do
+  action [:install, :upgrade]
+end
+
 template "/usr/local/bin/postgresql-backup.sh" do
   source "postgresql.sh.erb"
   owner "root"
